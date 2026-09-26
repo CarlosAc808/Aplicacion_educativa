@@ -1,0 +1,50 @@
+nombre: Implementar en Render
+
+en:
+  empujar:
+    ramas:
+      - principal
+
+trabajos:
+  ci-cd-pipeline:
+    se ejecuta en: ubuntu-latest
+
+    pasos:
+      - nombre: Checkout del código
+        uses: actions/checkout@v4
+
+      - nombre: Configurar PHP
+        usa: shivammathur/setup-php@v2
+        con:
+          php-version: "8.4"
+          extensiones: mbstring, bcmath, pdo, pdo_pgsql, pgsql
+          cobertura: ninguna
+
+      - nombre: Validar secretos requeridos
+        ejecutar: |
+          si [ -z "${{ secretos.RENDER_DEPLOY_HOOK }}" ]; luego
+            repite "ERROR: RENDER_DEPLOY_HOOK no está configurado".
+            salida 1
+          fi
+
+      - nombre: Generar archivo .env
+        ejecutar: |
+          cat > .env <<EOF
+          ${{ secrets.ENV_FILE }}
+          EOF
+
+      - nombre: Verificar archivo .env
+        ejecutar: |
+          test -f .env
+          echo ".env generado correctamente"
+
+      - nombre: Instalar dependencias Composer
+        ejecutar: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Disparar despliegue en Render
+        run: |
+          curl --fail --silent --show-error \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+      - name: Confirmar implementación solicitada
+        run: echo "Solicitud de implementación enviada correctamente a Render."
