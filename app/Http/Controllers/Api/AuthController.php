@@ -18,13 +18,14 @@ class AuthController extends Controller
     {
         if (! $user->is_admin && ! $user->has_paid_lives) {
             $startedAt = $user->lives_reset_at ?: now();
-            $hours = $startedAt->diffInHours(now());
-            $newLives = min(7, $user->lives + $hours);
+            $minutes = $startedAt->diffInMinutes(now());
+            $periods = (int) floor($minutes / 5);
+            $newLives = min(7, $user->lives + $periods);
 
-            if ($hours > 0 || ! $user->lives_reset_at) {
+            if ($periods > 0 || ! $user->lives_reset_at) {
                 $user->forceFill([
                     'lives' => $newLives,
-                    'lives_reset_at' => $hours > 0 ? $startedAt->addHours($hours) : $startedAt,
+                    'lives_reset_at' => $periods > 0 ? $startedAt->addMinutes($periods * 5) : $startedAt,
                 ])->save();
             }
         }
