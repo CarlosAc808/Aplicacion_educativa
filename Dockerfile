@@ -111,5 +111,14 @@ EOF
 # Exponer el puerto que Render asignará dinámicamente
 EXPOSE 80
 
-# Iniciar Supervisor para controlar Nginx y PHP-FPM juntos
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Script de arranque: migraciones + seed + servidor
+COPY <<-"EOF" /start.sh
+#!/bin/sh
+php artisan migrate --force
+php artisan db:seed --force
+php artisan config:cache
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+EOF
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
