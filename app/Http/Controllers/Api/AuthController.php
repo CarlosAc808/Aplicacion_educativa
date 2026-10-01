@@ -90,6 +90,7 @@ class AuthController extends Controller
         abort_if(blank(config('services.stripe.secret')), 503, 'Stripe no está configurado.');
         $user = $this->refreshedUser($request->user());
         $stripe = new StripeClient(config('services.stripe.secret'));
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
         $session = $stripe->checkout->sessions->create([
             'mode' => 'payment',
             'client_reference_id' => (string) $user->id,
@@ -102,8 +103,8 @@ class AuthController extends Controller
                 ],
                 'quantity' => 1,
             ]],
-            'success_url' => rtrim(config('app.frontend_url'), '/') . '?stripe_session_id={CHECKOUT_SESSION_ID}#missions',
-            'cancel_url' => rtrim(config('app.frontend_url'), '/') . '#missions',
+            'success_url' => $frontendUrl . '/payment-return.html?stripe_session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $frontendUrl . '/#missions',
             'metadata' => ['user_id' => (string) $user->id],
         ]);
 
