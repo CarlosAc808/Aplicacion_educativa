@@ -104,7 +104,7 @@ class AuthController extends Controller
                 'quantity' => 1,
             ]],
             'success_url' => $frontendUrl . '/payment-return.html?stripe_session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => $frontendUrl . '/#missions',
+            'cancel_url' => $frontendUrl . '/payment-return.html?cancelled=1',
             'metadata' => ['user_id' => (string) $user->id],
         ]);
 
